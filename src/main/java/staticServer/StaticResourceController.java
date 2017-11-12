@@ -29,8 +29,9 @@ public class StaticResourceController {
 	private ImageManager imageManager;
 
 	@RequestMapping(value = "/images", method = RequestMethod.POST)
-    public ResponseEntity<String> ImageUpload(@RequestParam("imageFile") MultipartFile uploadfile) throws IOException {
-        imageManager.writeImage(uploadfile.getBytes(), uploadfile.getOriginalFilename());
+    public ResponseEntity<String> ImageUpload(@RequestParam("imageFile") MultipartFile uploadfile,
+    										  @RequestParam("fileName") String fileName) throws IOException {
+        imageManager.writeImage(uploadfile.getBytes(), fileName);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
