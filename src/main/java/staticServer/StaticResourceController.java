@@ -2,9 +2,10 @@ package staticServer;
 
 import java.io.IOException;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,24 +29,53 @@ public class StaticResourceController {
 	@Autowired
 	private ImageManager imageManager;
 
-	@RequestMapping(value = "/images", method = RequestMethod.POST)
-    public ResponseEntity<String> ImageUpload(@RequestParam("imageFile") MultipartFile uploadfile,
-    										  @RequestParam("fileName") String fileName) throws IOException {
-        imageManager.writeImage(uploadfile.getBytes(), fileName);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
+//	@RequestMapping(value = "/images/**/{name:.+}", method = RequestMethod.POST)
+//    public ResponseEntity<String> ImageUpload(@RequestParam("imageFile") MultipartFile uploadfile,
+//    										  @RequestParam("fileName") String fileName,
+//    										  HttpServletRequest request) throws IOException {
+//		
+//		if (request.getRequestURI().trim().split("/images")[1] != null){
+//			String fullPath = request.getRequestURI().trim().split("/images")[1];
+//			String folderPath = fullPath.split(fileName)[0];
+//			System.out.println(fullPath);
+//			System.out.println(folderPath);
+//		}
+//		
+//        imageManager.writeImage(uploadfile.getBytes(), fileName);
+//        return new ResponseEntity<>(HttpStatus.OK);
+//    }
+	
+	@RequestMapping(value = "/images/**/{name:.+}", method = RequestMethod.GET)
+	public ResponseEntity<ByteArrayResource> getArticleImage(@PathVariable("name") String name,
+			  HttpServletRequest request) throws IOException {
+		
+		if (request.getRequestURI().trim().split("/images")[1] != null){
+			String fullPath = request.getRequestURI().trim().split("/images")[1];
+			 byte[] image = imageManager.loadImage(fullPath);
+			    ByteArrayResource byteArrayResourceImage = new ByteArrayResource(image);
+			    
+			    HttpHeaders headers = new HttpHeaders();
+			    headers.setContentType(MediaType.IMAGE_JPEG);
+			    headers.setContentLength(image.length);
 
-	@RequestMapping(value = "/images/{name:.+}", method = RequestMethod.GET)
-	public ResponseEntity<ByteArrayResource> getArticleImage(@PathVariable("name") String name) throws IOException {
- 
-	    byte[] image = imageManager.loadImage(name);
-	    ByteArrayResource byteArrayResourceImage = new ByteArrayResource(image);
-	    
-	    HttpHeaders headers = new HttpHeaders();
-	    headers.setContentType(MediaType.IMAGE_JPEG);
-	    headers.setContentLength(image.length);
-
-	    return ResponseEntity.ok().headers(headers).contentLength(byteArrayResourceImage.contentLength())
-				.contentType(MediaType.parseMediaType("application/octet-stream")).body(byteArrayResourceImage);
+			    return ResponseEntity.ok().headers(headers).contentLength(byteArrayResourceImage.contentLength())
+						.contentType(MediaType.parseMediaType("application/octet-stream")).body(byteArrayResourceImage);
+		}
+		
+		return null;
 	}
+
+//	@RequestMapping(value = "/images/{name:.+}", method = RequestMethod.GET)
+//	public ResponseEntity<ByteArrayResource> getArticleImage(@PathVariable("name") String name) throws IOException {
+// 
+//	    byte[] image = imageManager.loadImage(name);
+//	    ByteArrayResource byteArrayResourceImage = new ByteArrayResource(image);
+//	    
+//	    HttpHeaders headers = new HttpHeaders();
+//	    headers.setContentType(MediaType.IMAGE_JPEG);
+//	    headers.setContentLength(image.length);
+//
+//	    return ResponseEntity.ok().headers(headers).contentLength(byteArrayResourceImage.contentLength())
+//				.contentType(MediaType.parseMediaType("application/octet-stream")).body(byteArrayResourceImage);
+//	}
 }
